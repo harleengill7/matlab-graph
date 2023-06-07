@@ -1,0 +1,106 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+#include <string.h>
+
+#define PI 3.14
+#define N_MAX 1000
+//API
+float * getXSamples(int *n, float xmin, float xmax, float step);
+float * getGaussian(int n, float x[]);     //f = 2/sqrt(pi) e^(-x^2)
+float * integrate(int n, float x[], float f[]);
+
+//Function Definition
+float * getXSamples(int *n, float xmin, float xmax, float step)
+{
+    float *numSamples;
+    *n = (int) ((xmax - xmin)/step) + 1;
+    numSamples = (float *) malloc(*n * sizeof(float));
+    
+    for(int i=0;i<*n;i++)
+    {
+        numSamples[i] = step*(i) + 0; //xmin = 0
+        printf("\nx[%d] = %f\n", i, numSamples[i]);
+    }
+        
+    return(numSamples);
+
+
+}
+float * getGaussian(int n, float x[])  //f = 2/sqrt(pi) e^(-x^2) bell curve
+{
+    float *ysamples;
+    ysamples = (float *)malloc(n * sizeof(float));
+
+    for(int i=0;i<n;i++)
+    {
+        ysamples[i] = 1/sqrt(2*PI) * exp(-(0.5)*pow(x[i],2)); //(2/sqrt(PI)) * exp(pow(x[i],2)), standard Gaussian has mean 0 and standard deviation 1.
+        printf("\ny samples: %f",ysamples[i]);
+    }
+    return (ysamples);
+    }
+
+float * integrate(int n, float x[], float f[]) //area under bell curve
+{
+    float step;
+    step = x[1] - x[0];
+    
+    float *inteFcn;
+    inteFcn = (float *) malloc (n * sizeof(float));
+    *inteFcn = f[0] * step;
+    for(int i=1;i<n;i++)
+    {
+        *inteFcn = *inteFcn + (f[i] * step);
+    }
+    return (inteFcn);
+}
+
+//er function done by matlab
+
+int main()
+{
+    float xmin;
+    float xmax;
+    int *n;
+    float step;
+    
+    xmin = 0.0;
+    xmax = 5.0;
+    step = 1.0;
+    
+    n = (int*) malloc(sizeof(int));
+    
+    float *xsamples;
+    xsamples = getXSamples(n,xmin,xmax,step); //xmax = 5, xmin = 0, step - 0.1
+    
+    float *ysamples;
+    ysamples = getGaussian(*n,xsamples);
+    
+    float *integral;
+    integral = integrate(*n,xsamples,ysamples);
+    printf("\nIntegrate : %f", *integral);
+    
+    char xsamples2[N_MAX];
+    
+    //write data into file for matlab
+    FILE *fp;
+    
+    fp = fopen("/Users/harleengill/Documents/370/c-programs/assignemnt-2-data.txt", "w");
+    //fprintf(fp, "Assignemnt 2 Data");
+    
+    //fprintf(fp, "\n\n");
+   for(int i=0;i<6;i++)
+    {
+       fprintf(fp, "%f %f %f\n", xsamples[i], ysamples[i], *integral);
+       //fprintf(fp, "%.15f ", i, *ysamples[i]);
+       //fprintf(fp, "%.15f ", *integral);
+    }
+    //fprintf(fp, "\n\n");
+    //fprintf(fp, "%.15f ", *integral);
+    
+    fclose(fp);
+           
+    printf("\n\n");
+    return 0;
+}
